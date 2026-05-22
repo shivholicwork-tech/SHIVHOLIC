@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Initialize monorepo with Turborepo, set up all workspace packages (apps/web, apps/api, packages/database, packages/shared), configure TypeScript, ESLint, Prettier, and establish the project foundation including Prisma schema with full database models.",
+  "status": "in_progress",
+  "steps": [
+    "Create root package.json with pnpm workspaces config pointing to apps/* and packages/*",
+    "Create turbo.json with build/test/lint pipeline configuration",
+    "Create root tsconfig.json as base TypeScript config with strict mode",
+    "Create root .eslintrc.js and .prettierrc for shared linting/formatting",
+    "Create .gitignore with node_modules, .next, dist, .env, prisma generated client",
+    "Create .env.example with all needed environment variables (DATABASE_URL, OPENAI_API_KEY, STRIPE_SECRET_KEY, NEXTAUTH_SECRET, NEXTAUTH_URL, REDIS_URL)",
+    "Initialize apps/web as Next.js 14 app with TypeScript, Tailwind CSS, App Router - create package.json, next.config.js, tsconfig.json, tailwind.config.ts, postcss.config.js, src/app/layout.tsx with root providers, src/app/page.tsx as landing redirect",
+    "Initialize apps/api as NestJS application - create package.json, tsconfig.json, nest-cli.json, src/main.ts with NestFactory bootstrap, src/app.module.ts, src/app.controller.ts, src/app.service.ts",
+    "Initialize packages/database with Prisma - create package.json, tsconfig.json, prisma/schema.prisma with comprehensive schema (User, Team, TeamMember, Project, Crawl, Page, Keyword, KeywordCluster, Content, TopicalMap, TopicalMapNode, Backlink, Ranking, Report, AiTask, Subscription, Audit, AuditIssue models with proper relations, enums, indexes)",
+    "Initialize packages/shared with common TypeScript types - create package.json, tsconfig.json, src/index.ts, src/types/user.ts, src/types/project.ts, src/types/agents.ts, src/types/api.ts with shared interfaces and enums for all 16 AI agents",
+    "Create pnpm-workspace.yaml file",
+    "Run pnpm install to validate workspace resolution, run pnpm build to confirm everything compiles"
+  ],
+  "acceptance_criteria": [
+    "pnpm install succeeds from repo root with all workspaces resolved",
+    "pnpm build succeeds - Next.js compiles, NestJS compiles, packages compile",
+    "pnpm lint succeeds with no errors",
+    "Prisma schema is valid (prisma format succeeds)",
+    "TypeScript strict mode enabled across all packages",
+    "All workspace packages can import from packages/shared and packages/database"
+  ],
+  "verification": [
+    "export PATH=/opt/node22/bin:$PATH && pnpm install",
+    "export PATH=/opt/node22/bin:$PATH && pnpm build",
+    "export PATH=/opt/node22/bin:$PATH && pnpm lint"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,27 @@
+{
+  "project_type": "Full-stack AI SEO SaaS Platform - Next.js frontend + NestJS backend + Python AI microservices",
+  "language": "TypeScript (primary), Python (AI services)",
+  "build_system": "pnpm workspaces monorepo with Turborepo",
+  "test_framework": "Jest for unit tests, Playwright for E2E (frontend), Jest for backend",
+  "build_command": "export PATH=/opt/node22/bin:$PATH && pnpm build",
+  "test_command": "export PATH=/opt/node22/bin:$PATH && pnpm test",
+  "verification_instructions": "1. Run pnpm install from root. 2. Run pnpm build to verify TypeScript compilation. 3. Run pnpm lint to check code quality. 4. Run pnpm test to run unit tests.",
+  "snapshot_or_generated_files": "Prisma client generated via 'pnpm --filter backend prisma generate'. No checked-in snapshots.",
+  "setup_instructions": "1. export PATH=/opt/node22/bin:$PATH. 2. pnpm install from repo root. 3. Copy .env.example to .env and configure. 4. pnpm --filter backend prisma generate.",
+  "environment_constraints": "Node.js v22.15.0 at /opt/node22/bin. pnpm 11.2.2. Python 3.12 available. Docker available but SSL cert issues with some registries - prefer host-based builds. Must export PATH=/opt/node22/bin:$PATH before any node/pnpm commands.",
+  "contribution_requirements": "Greenfield project - establishing conventions. Use conventional commits. TypeScript strict mode. ESLint + Prettier for formatting.",
+  "key_patterns": "Monorepo with apps/web (Next.js), apps/api (NestJS), packages/shared (types/utils), packages/database (Prisma). ShadCN UI components. Zustand stores. React Query for data fetching. NestJS modules with controllers/services/DTOs pattern.",
+  "relevant_files": [
+    "package.json (root - workspace config)",
+    "apps/web/package.json",
+    "apps/api/package.json",
+    "packages/database/package.json",
+    "packages/shared/package.json",
+    "turbo.json",
+    "apps/web/src/app/layout.tsx",
+    "apps/web/src/app/page.tsx",
+    "apps/api/src/main.ts",
+    "packages/database/prisma/schema.prisma"
+  ],
+  "directory_structure": "Monorepo: apps/web (Next.js 14 App Router), apps/api (NestJS), packages/database (Prisma schema + client), packages/shared (shared TypeScript types and utilities)"
+}

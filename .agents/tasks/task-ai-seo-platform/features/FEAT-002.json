@@ -1,0 +1,45 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Build the complete Next.js frontend UI foundation - premium SaaS design system with ShadCN UI, dashboard layout, navigation, dark/light theme, all page shells for the 11 main pages, and reusable component library with glassmorphism and modern styling.",
+  "status": "pending",
+  "steps": [
+    "Install frontend dependencies: @radix-ui/react-* primitives, class-variance-authority, clsx, tailwind-merge, lucide-react, framer-motion, zustand, @tanstack/react-query, next-themes, recharts, cmdk (command palette)",
+    "Set up ShadCN UI configuration: create components.json, lib/utils.ts with cn() helper, set up the ShadCN component system with custom theme variables in globals.css supporting dark/light mode with premium color palette (deep blues, purples, electric accents)",
+    "Create the ShadCN UI components needed: Button, Card, Input, Label, Select, Tabs, Badge, Avatar, DropdownMenu, Sheet, Dialog, Command, Separator, ScrollArea, Tooltip, Progress, Skeleton, Switch, Textarea - all in src/components/ui/",
+    "Create the app theme provider in src/components/providers/theme-provider.tsx using next-themes, and query-provider.tsx for React Query, wrap in src/app/layout.tsx",
+    "Build the main dashboard layout in src/app/(dashboard)/layout.tsx with: collapsible sidebar navigation (all 11 pages with icons), top header bar with search command palette, user avatar dropdown, theme toggle, notification bell, project selector dropdown",
+    "Create the sidebar component src/components/layout/sidebar.tsx - premium design with glassmorphism background, smooth expand/collapse animation with Framer Motion, active state indicators, grouped navigation sections (Main: Dashboard, AI Chat; SEO Tools: Audit, Keywords, Content Writer, Topical Maps, Rank Tracker, Backlinks, Technical SEO; Settings: Settings, Billing)",
+    "Create the header component src/components/layout/header.tsx with command palette (Cmd+K), breadcrumbs, project selector, notifications dropdown, user menu",
+    "Create dashboard page src/app/(dashboard)/dashboard/page.tsx with: overview stats cards (Projects, Keywords Tracked, Pages Audited, Content Score), recent activity feed, quick actions grid, AI agent status cards, mini charts using Recharts",
+    "Create SEO Audit page shell src/app/(dashboard)/audit/page.tsx with: URL input form to start audit, recent audits table, audit score visualization (circular progress), tabbed view for issues (Critical, Warnings, Passed, Info)",
+    "Create Keyword Explorer page shell src/app/(dashboard)/keywords/page.tsx with: search input, keyword results table with columns (Keyword, Volume, KD, CPC, Intent, Trend), filters sidebar, keyword cluster visualization",
+    "Create AI Content Writer page shell src/app/(dashboard)/content/page.tsx with: split-pane editor layout (left: content editor with toolbar, right: SEO score panel with NLP terms, readability, optimization suggestions), content list/history",
+    "Create AI SEO Chat page shell src/app/(dashboard)/chat/page.tsx with: ChatGPT-style interface, message bubbles, streaming text animation placeholder, suggested prompts grid, conversation history sidebar",
+    "Create Topical Maps page shell src/app/(dashboard)/topical-maps/page.tsx with: project selector, visual map placeholder area, topic list sidebar, create new map button/dialog",
+    "Create Rank Tracker page shell src/app/(dashboard)/rank-tracker/page.tsx with: keyword table with rank positions, rank change indicators (up/down arrows with colors), line chart for rank history, filters for country/device",
+    "Create Backlinks page shell src/app/(dashboard)/backlinks/page.tsx with: backlink table (URL, DA, Anchor, Status, Type), dofollow/nofollow filter, referring domains count, backlink growth chart",
+    "Create Technical SEO page shell src/app/(dashboard)/technical-seo/page.tsx with: Core Web Vitals cards (LCP, FID, CLS with gauges), crawl stats, issues list, sitemap status",
+    "Create Settings page shell src/app/(dashboard)/settings/page.tsx with tabbed layout: Profile, Team, API Keys, Integrations, Notifications",
+    "Create Billing page shell src/app/(dashboard)/billing/page.tsx with: current plan card, plan comparison grid (Free/Pro/Agency with features), usage meters, invoice history",
+    "Create reusable components: src/components/shared/stat-card.tsx (animated counter), src/components/shared/data-table.tsx (generic sortable/filterable table), src/components/shared/score-ring.tsx (circular progress), src/components/shared/empty-state.tsx, src/components/shared/page-header.tsx, src/components/shared/loading-skeleton.tsx",
+    "Add Framer Motion page transitions in layout, card hover effects, and smooth micro-animations throughout",
+    "Ensure full responsive design - mobile sidebar becomes sheet drawer, tables become card views on mobile"
+  ],
+  "acceptance_criteria": [
+    "pnpm build succeeds with no TypeScript errors in the frontend",
+    "All 11 pages render without errors (verified by successful build)",
+    "Dark/light mode toggle works via next-themes",
+    "Sidebar navigation links to all pages correctly",
+    "Responsive layout - sidebar collapses on mobile",
+    "ShadCN UI components are properly configured and importable",
+    "Tailwind CSS custom theme with premium color variables is applied",
+    "All pages have proper loading states with skeleton components"
+  ],
+  "verification": [
+    "export PATH=/opt/node22/bin:$PATH && pnpm --filter web build",
+    "export PATH=/opt/node22/bin:$PATH && pnpm --filter web lint"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

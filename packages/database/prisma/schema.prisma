@@ -1,0 +1,435 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// === ENUMS ===
+
+enum UserRole {
+  ADMIN
+  OWNER
+  MEMBER
+  VIEWER
+}
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum CrawlStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum ContentStatus {
+  DRAFT
+  GENERATING
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AuditStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum IssueSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum AgentType {
+  KEYWORD_RESEARCHER
+  CONTENT_WRITER
+  CONTENT_OPTIMIZER
+  TECHNICAL_AUDITOR
+  BACKLINK_ANALYZER
+  RANK_TRACKER
+  COMPETITOR_ANALYZER
+  TOPICAL_MAP_BUILDER
+  SCHEMA_GENERATOR
+  META_OPTIMIZER
+  INTERNAL_LINKER
+  CONTENT_PLANNER
+  SITE_CRAWLER
+  REPORT_GENERATOR
+  CONTENT_REFRESHER
+  LOCAL_SEO_OPTIMIZER
+}
+
+enum AiTaskStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// === MODELS ===
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String?
+  avatarUrl     String?
+  role          UserRole @default(MEMBER)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ownedTeams   Team[]
+  teamMembers  TeamMember[]
+  subscription Subscription?
+
+  @@index([email])
+  @@map("users")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members  TeamMember[]
+  projects Project[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  userId   String
+  teamId   String
+  role     UserRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([teamId])
+  @@map("team_members")
+}
+
+model Project {
+  id        String        @id @default(cuid())
+  name      String
+  domain    String
+  teamId    String
+  status    ProjectStatus @default(ACTIVE)
+  settings  Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  team            Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  crawls          Crawl[]
+  pages           Page[]
+  keywords        Keyword[]
+  keywordClusters KeywordCluster[]
+  contents        Content[]
+  topicalMaps     TopicalMap[]
+  backlinks       Backlink[]
+  reports         Report[]
+  aiTasks         AiTask[]
+  audits          Audit[]
+
+  @@index([teamId])
+  @@index([domain])
+  @@map("projects")
+}
+
+model Crawl {
+  id           String      @id @default(cuid())
+  projectId    String
+  status       CrawlStatus @default(PENDING)
+  pagesFound   Int         @default(0)
+  pagesCrawled Int         @default(0)
+  errors       Json?
+  startedAt    DateTime    @default(now())
+  completedAt  DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pages   Page[]
+
+  @@index([projectId])
+  @@index([status])
+  @@map("crawls")
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  projectId       String
+  crawlId         String
+  url             String
+  title           String?
+  metaDescription String?
+  h1              String?
+  statusCode      Int?
+  contentHash     String?
+  wordCount       Int?
+  loadTime        Float?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crawl       Crawl        @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+  auditIssues AuditIssue[]
+
+  @@unique([crawlId, url])
+  @@index([projectId])
+  @@index([url])
+  @@map("pages")
+}
+
+model Keyword {
+  id           String   @id @default(cuid())
+  projectId    String
+  keyword      String
+  searchVolume Int?
+  difficulty   Float?
+  cpc          Float?
+  intent       String?
+  clusterId    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cluster  KeywordCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+  rankings Ranking[]
+  contents Content[]       @relation("ContentKeywords")
+
+  @@unique([projectId, keyword])
+  @@index([projectId])
+  @@index([clusterId])
+  @@map("keywords")
+}
+
+model KeywordCluster {
+  id               String   @id @default(cuid())
+  projectId        String
+  name             String
+  primaryKeywordId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  keywords Keyword[]
+
+  @@index([projectId])
+  @@map("keyword_clusters")
+}
+
+model Content {
+  id               String        @id @default(cuid())
+  projectId        String
+  title            String
+  slug             String?
+  body             String
+  status           ContentStatus @default(DRAFT)
+  seoScore         Float?
+  readabilityScore Float?
+  wordCount        Int?
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  keywords Keyword[] @relation("ContentKeywords")
+
+  @@index([projectId])
+  @@index([status])
+  @@map("contents")
+}
+
+model TopicalMap {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  nodes   TopicalMapNode[]
+
+  @@index([projectId])
+  @@map("topical_maps")
+}
+
+model TopicalMapNode {
+  id           String   @id @default(cuid())
+  topicalMapId String
+  parentId     String?
+  title        String
+  description  String?
+  type         String   @default("topic")
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  topicalMap TopicalMap       @relation(fields: [topicalMapId], references: [id], onDelete: Cascade)
+  parent     TopicalMapNode?  @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children   TopicalMapNode[] @relation("NodeHierarchy")
+
+  @@index([topicalMapId])
+  @@index([parentId])
+  @@map("topical_map_nodes")
+}
+
+model Backlink {
+  id              String   @id @default(cuid())
+  projectId       String
+  sourceUrl       String
+  targetUrl       String
+  anchorText      String?
+  domainAuthority Float?
+  isDoFollow      Boolean  @default(true)
+  firstSeenAt     DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, sourceUrl, targetUrl])
+  @@index([projectId])
+  @@map("backlinks")
+}
+
+model Ranking {
+  id        String   @id @default(cuid())
+  keywordId String
+  position  Int
+  url       String
+  page      Int      @default(1)
+  checkedAt DateTime @default(now())
+
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@index([keywordId])
+  @@index([checkedAt])
+  @@map("rankings")
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  projectId String
+  type      String
+  title     String
+  data      Json
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([type])
+  @@map("reports")
+}
+
+model AiTask {
+  id          String       @id @default(cuid())
+  projectId   String
+  agentType   AgentType
+  status      AiTaskStatus @default(QUEUED)
+  input       Json
+  output      Json?
+  error       String?
+  tokensUsed  Int?
+  cost        Float?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([agentType])
+  @@map("ai_tasks")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  tier                 SubscriptionTier   @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
+model Audit {
+  id          String      @id @default(cuid())
+  projectId   String
+  status      AuditStatus @default(PENDING)
+  score       Float?
+  totalIssues Int         @default(0)
+  settings    Json?
+  startedAt   DateTime    @default(now())
+  completedAt DateTime?
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues  AuditIssue[]
+
+  @@index([projectId])
+  @@index([status])
+  @@map("audits")
+}
+
+model AuditIssue {
+  id             String        @id @default(cuid())
+  auditId        String
+  pageId         String?
+  type           String
+  severity       IssueSeverity @default(MEDIUM)
+  message        String
+  recommendation String?
+  createdAt      DateTime      @default(now())
+
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  page  Page? @relation(fields: [pageId], references: [id], onDelete: SetNull)
+
+  @@index([auditId])
+  @@index([severity])
+  @@map("audit_issues")
+}

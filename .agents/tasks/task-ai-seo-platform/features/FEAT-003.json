@@ -1,0 +1,39 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Build the NestJS backend API with authentication (NextAuth), core modules for SEO Audit, Keyword Research, AI Content Writer, and AI Chat. Set up the AI agent orchestration system, Stripe billing integration structure, and BullMQ job queue system.",
+  "status": "pending",
+  "steps": [
+    "Install backend dependencies: @nestjs/core, @nestjs/common, @nestjs/platform-express, @nestjs/config, @nestjs/swagger, @nestjs/bull, bull, bullmq, ioredis, class-validator, class-transformer, @nestjs/passport, passport, passport-jwt, stripe, openai, @prisma/client, rxjs, helmet, compression, express-rate-limit",
+    "Set up NestJS app structure with global modules: ConfigModule, PrismaModule (apps/api/src/prisma/prisma.module.ts and prisma.service.ts wrapping @prisma/client from packages/database), AuthModule, BullModule for job queues",
+    "Create the authentication system: apps/api/src/auth/auth.module.ts, auth.controller.ts (login, register, refresh, me endpoints), auth.service.ts, jwt.strategy.ts, auth.guard.ts. Use JWT tokens with refresh token rotation. Create DTOs: login.dto.ts, register.dto.ts",
+    "Create the AI Agent orchestration system: apps/api/src/agents/agents.module.ts, agents.service.ts (core orchestrator that can chain agents), agent-registry.ts (registers all 16 agents), base-agent.ts (abstract class all agents extend with execute/validate/format methods), agent-task.processor.ts (BullMQ processor for async agent tasks)",
+    "Create individual agent services (with interfaces, not full AI implementation): apps/api/src/agents/services/seo-audit.agent.ts, keyword-research.agent.ts, content-writer.agent.ts, ai-chat.agent.ts - each extending BaseAgent with proper input/output type definitions",
+    "Create the SEO Audit module: apps/api/src/audit/audit.module.ts, audit.controller.ts (POST /audit/start, GET /audit/:id, GET /audit/:id/issues, GET /audits for project), audit.service.ts (orchestrates crawl and analysis), audit.dto.ts (CreateAuditDto, AuditResponseDto)",
+    "Create the Keyword Research module: apps/api/src/keywords/keywords.module.ts, keywords.controller.ts (POST /keywords/research, GET /keywords/clusters, GET /keywords/suggestions), keywords.service.ts, keywords.dto.ts",
+    "Create the Content Writer module: apps/api/src/content/content.module.ts, content.controller.ts (POST /content/generate, POST /content/optimize, GET /content/:id, PUT /content/:id), content.service.ts, content.dto.ts",
+    "Create the AI Chat module: apps/api/src/chat/chat.module.ts, chat.controller.ts (POST /chat/message, GET /chat/conversations, GET /chat/conversation/:id), chat.service.ts (processes messages through appropriate agents), chat.dto.ts",
+    "Create the Stripe billing module: apps/api/src/billing/billing.module.ts, billing.controller.ts (POST /billing/create-checkout, POST /billing/webhook, GET /billing/subscription, GET /billing/invoices, POST /billing/portal), billing.service.ts (Stripe SDK integration), billing.dto.ts, stripe-webhook.guard.ts",
+    "Create the Projects module: apps/api/src/projects/projects.module.ts, projects.controller.ts (full CRUD), projects.service.ts, projects.dto.ts",
+    "Set up Swagger/OpenAPI documentation in main.ts with proper API grouping by module",
+    "Create global exception filter, validation pipe, logging interceptor, and rate limiting middleware in apps/api/src/common/",
+    "Add health check endpoint at GET /health and GET /api/status",
+    "Create API response wrapper type and pagination utility in apps/api/src/common/utils/"
+  ],
+  "acceptance_criteria": [
+    "pnpm --filter api build succeeds with no TypeScript errors",
+    "All NestJS modules are properly wired with dependency injection",
+    "Swagger documentation generates at /api/docs path",
+    "All controllers have proper DTOs with class-validator decorations",
+    "Auth guard protects all routes except public ones",
+    "Agent orchestration system properly chains agents in sequence",
+    "BullMQ processor is set up for async agent task execution",
+    "Stripe webhook handler validates signatures"
+  ],
+  "verification": [
+    "export PATH=/opt/node22/bin:$PATH && pnpm --filter api build",
+    "export PATH=/opt/node22/bin:$PATH && pnpm --filter api lint"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

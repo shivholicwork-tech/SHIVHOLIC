@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Wire frontend to backend with React Query hooks, Zustand stores, implement functional AI Chat page with streaming UI, implement SEO Audit workflow with progress tracking, and add authentication flow with NextAuth on the frontend.",
+  "status": "pending",
+  "steps": [
+    "Create API client utility in apps/web/src/lib/api-client.ts with base URL config, auth token injection, error handling wrapper, and typed fetch functions",
+    "Create React Query hooks: apps/web/src/hooks/use-audit.ts (useStartAudit, useAuditStatus, useAuditResults), apps/web/src/hooks/use-keywords.ts (useKeywordResearch, useKeywordSuggestions), apps/web/src/hooks/use-content.ts (useGenerateContent, useOptimizeContent), apps/web/src/hooks/use-chat.ts (useSendMessage, useConversations)",
+    "Create Zustand stores: apps/web/src/stores/auth-store.ts (user state, tokens), apps/web/src/stores/project-store.ts (active project, project list), apps/web/src/stores/ui-store.ts (sidebar state, theme, modals), apps/web/src/stores/chat-store.ts (messages, conversations, streaming state)",
+    "Implement the AI SEO Chat page fully: message input with auto-resize textarea, message list with proper bubbles (user/assistant), typing indicator animation, suggested prompts that pre-fill input, markdown rendering in assistant messages, conversation sidebar with history list, new chat button",
+    "Implement the SEO Audit page fully: URL input form with validation, start audit button that shows progress (scanning, analyzing phases), results view with score ring showing overall SEO health, tabbed issues panel (Critical/Warning/Passed) with expandable issue cards showing description and fix suggestion, export button placeholder",
+    "Implement authentication flow: create apps/web/src/app/(auth)/login/page.tsx and register/page.tsx with premium forms, set up NextAuth config in apps/web/src/app/api/auth/[...nextauth]/route.ts with credentials provider pointing to backend API, create auth middleware in apps/web/src/middleware.ts to protect dashboard routes",
+    "Implement the Keyword Explorer page with functional UI: search form, results table with mock data flowing through React Query pattern, keyword difficulty colored badges, search intent pills (Informational/Commercial/Transactional/Navigational), volume bar indicators, export to CSV button",
+    "Implement the AI Content Writer page with split editor: left pane with rich text area (contenteditable with toolbar for H1-H6, bold, italic, lists), right pane showing SEO score breakdown (keyword density, readability score, NLP terms checklist, word count, suggestions list), generate button that triggers content creation flow",
+    "Add loading states with skeleton animations for all data-fetching pages, error boundaries with retry buttons, empty states with illustrations for no-data scenarios",
+    "Create a demo/mock data layer in apps/web/src/lib/mock-data.ts that provides realistic SEO data for all pages so the UI looks populated and functional even without a running backend"
+  ],
+  "acceptance_criteria": [
+    "pnpm --filter web build succeeds",
+    "AI Chat page renders with message interface, can display mock conversations",
+    "SEO Audit page shows audit workflow with progress and results display",
+    "Auth pages render with login/register forms",
+    "Keyword Explorer shows data table with mock keyword data",
+    "Content Writer shows split-pane editor with SEO scoring panel",
+    "All pages gracefully handle loading, error, and empty states",
+    "React Query hooks are properly typed with TypeScript",
+    "Zustand stores manage application state correctly"
+  ],
+  "verification": [
+    "export PATH=/opt/node22/bin:$PATH && pnpm --filter web build",
+    "export PATH=/opt/node22/bin:$PATH && pnpm build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}
