@@ -2,7 +2,7 @@
   "id": "FEAT-004",
   "type": "feat",
   "description": "Wire frontend to backend with React Query hooks, Zustand stores, implement functional AI Chat page with streaming UI, implement SEO Audit workflow with progress tracking, and add authentication flow with NextAuth on the frontend.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Create API client utility in apps/web/src/lib/api-client.ts with base URL config, auth token injection, error handling wrapper, and typed fetch functions",
     "Create React Query hooks: apps/web/src/hooks/use-audit.ts (useStartAudit, useAuditStatus, useAuditResults), apps/web/src/hooks/use-keywords.ts (useKeywordResearch, useKeywordSuggestions), apps/web/src/hooks/use-content.ts (useGenerateContent, useOptimizeContent), apps/web/src/hooks/use-chat.ts (useSendMessage, useConversations)",
