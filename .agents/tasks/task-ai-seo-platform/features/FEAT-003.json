@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Build the NestJS backend API with authentication (NextAuth), core modules for SEO Audit, Keyword Research, AI Content Writer, and AI Chat. Set up the AI agent orchestration system, Stripe billing integration structure, and BullMQ job queue system.",
-  "status": "pending",
+  "status": "in_progress",
   "steps": [
     "Install backend dependencies: @nestjs/core, @nestjs/common, @nestjs/platform-express, @nestjs/config, @nestjs/swagger, @nestjs/bull, bull, bullmq, ioredis, class-validator, class-transformer, @nestjs/passport, passport, passport-jwt, stripe, openai, @prisma/client, rxjs, helmet, compression, express-rate-limit",
     "Set up NestJS app structure with global modules: ConfigModule, PrismaModule (apps/api/src/prisma/prisma.module.ts and prisma.service.ts wrapping @prisma/client from packages/database), AuthModule, BullModule for job queues",
