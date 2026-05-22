@@ -19,7 +19,8 @@ interface AuthResponse {
     email: string;
     name: string;
   };
-  access_token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export function useLogin() {
@@ -30,7 +31,7 @@ export function useLogin() {
       apiClient.post<AuthResponse>("/auth/login", data),
     onSuccess: (data) => {
       setUser(data.user);
-      setToken(data.access_token);
+      setToken(data.accessToken);
     },
   });
 }
@@ -43,7 +44,7 @@ export function useRegister() {
       apiClient.post<AuthResponse>("/auth/register", data),
     onSuccess: (data) => {
       setUser(data.user);
-      setToken(data.access_token);
+      setToken(data.accessToken);
     },
   });
 }

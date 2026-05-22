@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
+import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { AgentsModule } from './agents/agents.module';
 import { AuditModule } from './audit/audit.module';
@@ -26,6 +27,7 @@ import { ProjectsModule } from './projects/projects.module';
       },
     }),
     PrismaModule,
+    CommonModule,
     AuthModule,
     AgentsModule,
     AuditModule,

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { SendMessageDto } from './dto/chat.dto';
 
 export interface ChatMessage {
@@ -18,62 +19,149 @@ export interface Conversation {
 
 @Injectable()
 export class ChatService {
-  // In-memory store for now - would be persisted in production
-  private conversations: Map<string, Conversation> = new Map();
+  constructor(private readonly prisma: PrismaService) {}
 
   async sendMessage(dto: SendMessageDto, userId: string) {
     const conversationId = dto.conversationId || this.generateId();
 
-    let conversation = this.conversations.get(conversationId);
-    if (!conversation) {
-      conversation = {
-        id: conversationId,
-        userId,
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      this.conversations.set(conversationId, conversation);
-    }
-
-    // Add user message
-    conversation.messages.push({
-      id: this.generateId(),
-      role: 'user',
-      content: dto.message,
-      timestamp: new Date(),
+    // Store as an AiTask record for persistence
+    const task = await this.prisma.aiTask.create({
+      data: {
+        projectId: dto.projectId || 'chat-default',
+        agentType: 'CONTENT_PLANNER',
+        status: 'COMPLETED',
+        input: {
+          conversationId,
+          userId,
+          message: dto.message,
+          role: 'user',
+        },
+        output: {
+          conversationId,
+          response: this.routeToAgent(dto.message),
+          intent: this.detectIntent(dto.message),
+        },
+        startedAt: new Date(),
+        completedAt: new Date(),
+      },
     });
 
-    // Generate AI response (mock)
     const response = this.routeToAgent(dto.message);
-    conversation.messages.push({
-      id: this.generateId(),
-      role: 'assistant',
-      content: response,
-      timestamp: new Date(),
-    });
-
-    conversation.updatedAt = new Date();
 
     return {
-      conversationId: conversation.id,
+      conversationId,
+      messageId: task.id,
       response,
       intent: this.detectIntent(dto.message),
     };
   }
 
   async getConversations(userId: string) {
-    const userConversations: Conversation[] = [];
-    this.conversations.forEach((conv) => {
-      if (conv.userId === userId) {
-        userConversations.push(conv);
-      }
+    // Retrieve conversations grouped by conversationId from AiTask records
+    const tasks = await this.prisma.aiTask.findMany({
+      where: {
+        agentType: 'CONTENT_PLANNER',
+        input: {
+          path: ['userId'],
+          equals: userId,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     });
-    return userConversations;
+
+    // Group by conversationId
+    const conversationMap = new Map<string, Conversation>();
+    for (const task of tasks) {
+      const input = task.input as { conversationId?: string; message?: string; userId?: string } | null;
+      const output = task.output as { response?: string } | null;
+      const convId = input?.conversationId || task.id;
+
+      if (!conversationMap.has(convId)) {
+        conversationMap.set(convId, {
+          id: convId,
+          userId,
+          messages: [],
+          createdAt: task.createdAt,
+          updatedAt: task.createdAt,
+        });
+      }
+
+      const conv = conversationMap.get(convId)!;
+      if (input?.message) {
+        conv.messages.push({
+          id: `${task.id}-user`,
+          role: 'user',
+          content: input.message,
+          timestamp: task.createdAt,
+        });
+      }
+      if (output?.response) {
+        conv.messages.push({
+          id: `${task.id}-assistant`,
+          role: 'assistant',
+          content: output.response,
+          timestamp: task.createdAt,
+        });
+      }
+      conv.updatedAt = task.createdAt;
+    }
+
+    return Array.from(conversationMap.values());
   }
 
-  async getConversation(id: string) {
-    return this.conversations.get(id) || null;
+  async getConversation(id: string, userId: string) {
+    const tasks = await this.prisma.aiTask.findMany({
+      where: {
+        agentType: 'CONTENT_PLANNER',
+        input: {
+          path: ['conversationId'],
+          equals: id,
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (tasks.length === 0) {
+      return null;
+    }
+
+    // Verify ownership - check that the conversation belongs to this user
+    const firstInput = tasks[0].input as { userId?: string } | null;
+    if (firstInput?.userId !== userId) {
+      return null;
+    }
+
+    const messages: ChatMessage[] = [];
+    for (const task of tasks) {
+      const input = task.input as { message?: string } | null;
+      const output = task.output as { response?: string } | null;
+
+      if (input?.message) {
+        messages.push({
+          id: `${task.id}-user`,
+          role: 'user',
+          content: input.message,
+          timestamp: task.createdAt,
+        });
+      }
+      if (output?.response) {
+        messages.push({
+          id: `${task.id}-assistant`,
+          role: 'assistant',
+          content: output.response,
+          timestamp: task.createdAt,
+        });
+      }
+    }
+
+    return {
+      id,
+      userId,
+      messages,
+      createdAt: tasks[0].createdAt,
+      updatedAt: tasks[tasks.length - 1].createdAt,
+    };
   }
 
   private routeToAgent(message: string): string {

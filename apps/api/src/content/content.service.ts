@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GenerateContentDto, OptimizeContentDto, UpdateContentDto } from './dto/content.dto';
 import { getPaginationParams, createPaginatedResult } from '../common/utils/pagination';
+import { OwnershipService } from '../common/guards/ownership.guard';
 
 @Injectable()
 export class ContentService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ownership: OwnershipService,
+  ) {}
 
-  async generate(dto: GenerateContentDto) {
+  async generate(dto: GenerateContentDto, userId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
     });
@@ -16,7 +20,8 @@ export class ContentService {
       throw new NotFoundException('Project not found');
     }
 
-    // Create content record in GENERATING status
+    await this.ownership.verifyTeamMembership(userId, project.teamId);
+
     const content = await this.prisma.content.create({
       data: {
         projectId: dto.projectId,
@@ -26,7 +31,6 @@ export class ContentService {
       },
     });
 
-    // In production, dispatch to AI agent for actual generation
     return {
       id: content.id,
       status: 'generating',
@@ -34,16 +38,18 @@ export class ContentService {
     };
   }
 
-  async optimize(dto: OptimizeContentDto) {
+  async optimize(dto: OptimizeContentDto, userId: string) {
     const content = await this.prisma.content.findUnique({
       where: { id: dto.contentId },
+      include: { project: { select: { teamId: true } } },
     });
 
     if (!content) {
       throw new NotFoundException('Content not found');
     }
 
-    // In production, dispatch to content optimizer agent
+    await this.ownership.verifyTeamMembership(userId, content.project.teamId);
+
     return {
       contentId: dto.contentId,
       status: 'processing',
@@ -51,27 +57,32 @@ export class ContentService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     const content = await this.prisma.content.findUnique({
       where: { id },
-      include: { keywords: true },
+      include: { keywords: true, project: { select: { teamId: true } } },
     });
 
     if (!content) {
       throw new NotFoundException('Content not found');
     }
+
+    await this.ownership.verifyTeamMembership(userId, content.project.teamId);
 
     return content;
   }
 
-  async update(id: string, dto: UpdateContentDto) {
+  async update(id: string, dto: UpdateContentDto, userId: string) {
     const content = await this.prisma.content.findUnique({
       where: { id },
+      include: { project: { select: { teamId: true } } },
     });
 
     if (!content) {
       throw new NotFoundException('Content not found');
     }
+
+    await this.ownership.verifyTeamMembership(userId, content.project.teamId);
 
     return this.prisma.content.update({
       where: { id },
@@ -83,7 +94,9 @@ export class ContentService {
     });
   }
 
-  async findAll(projectId: string, page?: number, limit?: number) {
+  async findAll(projectId: string, userId: string, page?: number, limit?: number) {
+    await this.ownership.verifyProjectAccess(userId, projectId);
+
     const { skip, page: p, limit: l } = getPaginationParams({ page, limit });
 
     const [contents, total] = await Promise.all([

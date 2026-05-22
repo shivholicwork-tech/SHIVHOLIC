@@ -26,7 +26,7 @@ export class ChatController {
 
   @Get('conversations/:id')
   @ApiOperation({ summary: 'Get a specific conversation' })
-  async getConversation(@Param('id') id: string) {
-    return this.chatService.getConversation(id);
+  async getConversation(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.chatService.getConversation(id, user.sub);
   }
 }

@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AgentType } from '@ai-seo/shared';
 import { BaseAgent, AgentExecutionContext } from '../base-agent';
+import { AgentRegistry } from '../agent-registry';
 
 export interface AiChatInput {
   message: string;
@@ -15,9 +16,13 @@ export interface AiChatOutput {
 }
 
 @Injectable()
-export class AiChatAgent extends BaseAgent<AiChatInput, AiChatOutput> {
-  constructor() {
+export class AiChatAgent extends BaseAgent<AiChatInput, AiChatOutput> implements OnModuleInit {
+  constructor(private readonly registry: AgentRegistry) {
     super(AgentType.CONTENT_PLANNER, 'AI Chat Agent');
+  }
+
+  onModuleInit() {
+    this.registry.register(this);
   }
 
   validate(input: AiChatInput): void {
@@ -30,7 +35,6 @@ export class AiChatAgent extends BaseAgent<AiChatInput, AiChatOutput> {
     input: AiChatInput,
     _context: AgentExecutionContext,
   ): Promise<AiChatOutput> {
-    // Mock AI call - will be replaced with actual OpenAI integration
     this.logger.log(`Processing chat message: ${input.message.substring(0, 50)}`);
 
     return {

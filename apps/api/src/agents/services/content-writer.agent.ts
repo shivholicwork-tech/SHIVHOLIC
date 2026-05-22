@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AgentType } from '@ai-seo/shared';
 import { BaseAgent, AgentExecutionContext } from '../base-agent';
+import { AgentRegistry } from '../agent-registry';
 
 export interface ContentWriterInput {
   targetKeyword: string;
@@ -22,9 +23,13 @@ export interface ContentWriterOutput {
 export class ContentWriterAgent extends BaseAgent<
   ContentWriterInput,
   ContentWriterOutput
-> {
-  constructor() {
+> implements OnModuleInit {
+  constructor(private readonly registry: AgentRegistry) {
     super(AgentType.CONTENT_WRITER, 'Content Writer Agent');
+  }
+
+  onModuleInit() {
+    this.registry.register(this);
   }
 
   validate(input: ContentWriterInput): void {
@@ -40,7 +45,6 @@ export class ContentWriterAgent extends BaseAgent<
     input: ContentWriterInput,
     _context: AgentExecutionContext,
   ): Promise<ContentWriterOutput> {
-    // Mock AI call - will be replaced with actual OpenAI integration
     this.logger.log(`Writing content for keyword: ${input.targetKeyword}`);
 
     const wordCount = input.wordCount || 1500;

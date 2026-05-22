@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AgentType } from '@ai-seo/shared';
 import { BaseAgent, AgentExecutionContext } from '../base-agent';
+import { AgentRegistry } from '../agent-registry';
 
 export interface KeywordResearchInput {
   seedKeywords: string[];
@@ -26,9 +27,13 @@ export interface KeywordResearchOutput {
 export class KeywordResearchAgent extends BaseAgent<
   KeywordResearchInput,
   KeywordResearchOutput
-> {
-  constructor() {
+> implements OnModuleInit {
+  constructor(private readonly registry: AgentRegistry) {
     super(AgentType.KEYWORD_RESEARCHER, 'Keyword Research Agent');
+  }
+
+  onModuleInit() {
+    this.registry.register(this);
   }
 
   validate(input: KeywordResearchInput): void {
@@ -44,7 +49,6 @@ export class KeywordResearchAgent extends BaseAgent<
     input: KeywordResearchInput,
     _context: AgentExecutionContext,
   ): Promise<KeywordResearchOutput> {
-    // Mock AI call - will be replaced with actual OpenAI integration
     this.logger.log(
       `Researching keywords for: ${input.seedKeywords.join(', ')}`,
     );

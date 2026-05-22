@@ -22,11 +22,13 @@ export class AuditController {
   @ApiOperation({ summary: 'List audits for a project' })
   async list(
     @Query('projectId') projectId: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string | undefined,
+    @Query('limit') limit: string | undefined,
+    @CurrentUser() user: JwtPayload,
   ) {
     return this.auditService.getAudits(
       projectId,
+      user.sub,
       page ? parseInt(page) : undefined,
       limit ? parseInt(limit) : undefined,
     );
@@ -34,13 +36,13 @@ export class AuditController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get audit by ID' })
-  async findOne(@Param('id') id: string) {
-    return this.auditService.getAuditById(id);
+  async findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.auditService.getAuditById(id, user.sub);
   }
 
   @Get(':id/issues')
   @ApiOperation({ summary: 'Get issues for an audit' })
-  async getIssues(@Param('id') id: string) {
-    return this.auditService.getAuditIssues(id);
+  async getIssues(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.auditService.getAuditIssues(id, user.sub);
   }
 }

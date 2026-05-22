@@ -1,13 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { KeywordResearchDto } from './dto/keywords.dto';
+import { OwnershipService } from '../common/guards/ownership.guard';
 
 @Injectable()
 export class KeywordsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ownership: OwnershipService,
+  ) {}
 
-  async research(dto: KeywordResearchDto) {
-    // Verify project exists
+  async research(dto: KeywordResearchDto, userId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
     });
@@ -16,8 +19,8 @@ export class KeywordsService {
       throw new NotFoundException('Project not found');
     }
 
-    // In production, this dispatches to the keyword research agent
-    // For now, return mock data structure
+    await this.ownership.verifyTeamMembership(userId, project.teamId);
+
     return {
       projectId: dto.projectId,
       seedKeywords: dto.seedKeywords,
@@ -26,7 +29,9 @@ export class KeywordsService {
     };
   }
 
-  async getClusters(projectId: string) {
+  async getClusters(projectId: string, userId: string) {
+    await this.ownership.verifyProjectAccess(userId, projectId);
+
     const clusters = await this.prisma.keywordCluster.findMany({
       where: { projectId },
       include: {
@@ -37,7 +42,7 @@ export class KeywordsService {
     return clusters;
   }
 
-  async getSuggestions(projectId: string) {
+  async getSuggestions(projectId: string, userId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -46,7 +51,8 @@ export class KeywordsService {
       throw new NotFoundException('Project not found');
     }
 
-    // In production, this would use the AI agent to generate suggestions
+    await this.ownership.verifyTeamMembership(userId, project.teamId);
+
     return {
       projectId,
       suggestions: [],

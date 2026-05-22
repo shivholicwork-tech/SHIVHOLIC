@@ -18,6 +18,13 @@ export class ApiClientError extends Error {
   }
 }
 
+// Backend wraps responses in this envelope via TransformInterceptor
+interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+  error: string | null;
+}
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 function getToken(): string | null {
@@ -78,7 +85,14 @@ async function request<T>(
   const text = await response.text();
   if (!text) return {} as T;
 
-  return JSON.parse(text) as T;
+  const parsed = JSON.parse(text);
+
+  // Unwrap the { success, data, error } envelope from the backend
+  if (parsed && typeof parsed === "object" && "success" in parsed && "data" in parsed) {
+    return (parsed as ApiEnvelope<T>).data;
+  }
+
+  return parsed as T;
 }
 
 export const apiClient = {

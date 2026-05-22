@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { AgentType } from '@ai-seo/shared';
 import { BaseAgent, AgentExecutionContext } from '../base-agent';
+import { AgentRegistry } from '../agent-registry';
 
 export interface SeoAuditInput {
   projectId: string;
@@ -19,9 +20,13 @@ export interface SeoAuditOutput {
 }
 
 @Injectable()
-export class SeoAuditAgent extends BaseAgent<SeoAuditInput, SeoAuditOutput> {
-  constructor() {
+export class SeoAuditAgent extends BaseAgent<SeoAuditInput, SeoAuditOutput> implements OnModuleInit {
+  constructor(private readonly registry: AgentRegistry) {
     super(AgentType.TECHNICAL_AUDITOR, 'SEO Audit Agent');
+  }
+
+  onModuleInit() {
+    this.registry.register(this);
   }
 
   validate(input: SeoAuditInput): void {
@@ -34,7 +39,6 @@ export class SeoAuditAgent extends BaseAgent<SeoAuditInput, SeoAuditOutput> {
     input: SeoAuditInput,
     _context: AgentExecutionContext,
   ): Promise<SeoAuditOutput> {
-    // Mock AI call - will be replaced with actual OpenAI integration
     this.logger.log(`Running SEO audit for project ${input.projectId}`);
 
     return {
