@@ -1,6 +1,5 @@
 {
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @ai-seo/web build",
-  "outputDirectory": "apps/web/.next",
   "framework": "nextjs"
 }
